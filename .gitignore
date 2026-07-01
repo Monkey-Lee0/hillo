@@ -1,0 +1,21 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# 图片资源（及其 Godot .import 元数据）
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.bmp
+*.tga
+*.svg
+*.png.import
+*.jpg.import
+*.jpeg.import
+*.gif.import
+*.webp.import
+*.bmp.import
+*.tga.import
+*.svg.import

@@ -1,0 +1,10 @@
+{
+    "RETRACE_SELECT": "选择一张牌的消耗复制品加入手牌。",
+    "OUT_SELECT": "选择2张牌来变化。",
+    "EXPLORER_SELECT": "选择最多{Discard}张牌来丢弃。",
+    "TRANSMUTE_SELECT": "选择任意张牌来变化。",
+    "ALCHEMY_SELECT": "选择1张手牌来消耗",
+    "BACKSTEP_SELECT": "选择3张牌来丢弃",
+    "TERMINAL_HAND_SELECT": "选择一张手牌，本场战斗其耗能减1。",
+    "TERMINAL_DRAW_SELECT": "选择抽牌堆中一张牌，本场战斗其耗能加1。"
+}

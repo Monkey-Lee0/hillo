@@ -1,0 +1,63 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+  <PropertyGroup>
+    <!-- 移除RitsuLibDeployDir，因为不再依赖RitsuLib -->
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>true</ImplicitUsings>
+    <LangVersion>13.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <Sts2Dir>E:\SteamLibrary\steamapps\common\Slay the Spire 2</Sts2Dir>
+    <Sts2DataDir>$(Sts2Dir)\data_sts2_windows_x86_64</Sts2DataDir>
+    <BaseLibDir>E:\SteamLibrary\steamapps\workshop\content\2868840\3737335127\BaseLib</BaseLibDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="sts2">
+      <HintPath>$(Sts2DataDir)\sts2.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <Reference Include="0Harmony">
+      <HintPath>$(Sts2DataDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+
+    <!-- 移除 RitsuLib 包引用 -->
+    <!-- <PackageReference Include="STS2.RitsuLib" Version="*" /> -->
+
+    <!-- 添加 BaseLib 引用（需确认路径，这里假设在mods目录下） -->
+    <!-- <Reference Include="BaseLib">
+      <HintPath>$(Sts2Dir)\mods\BaseLib\BaseLib.dll</HintPath>
+      <Private>false</Private>
+    </Reference> -->
+    <!-- 如果BaseLib在创意工坊目录，调整路径，例如：
+    -->
+    <Reference Include="BaseLib">
+      <HintPath>E:\SteamLibrary\steamapps\workshop\content\2868840\3737335127\BaseLib\BaseLib.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <Target Name="Copy Mod" AfterTargets="PostBuildEvent">
+    <Message Text="🚀 正在将模组及资源同步到游戏目录..." Importance="high" />
+    
+    <MakeDir Directories="$(Sts2Dir)\mods\$(MSBuildProjectName)\" />
+    
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(Sts2Dir)\mods\$(MSBuildProjectName)\" />
+    <Copy SourceFiles="$(MSBuildProjectName).json" DestinationFolder="$(Sts2Dir)\mods\$(MSBuildProjectName)\" />
+
+    <ItemGroup>
+      <DllsToCopy Include="$(OutputPath)*.dll" 
+                  Exclude="$(OutputPath)sts2.dll;$(OutputPath)0Harmony.dll;$(OutputPath)System.*.dll;$(OutputPath)GodotSharp*.dll;$(OutputPath)Microsoft.*.dll;$(OutputPath)netstandard.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DllsToCopy)" DestinationFolder="$(Sts2Dir)\mods\$(MSBuildProjectName)\" SkipUnchangedFiles="true" />
+
+    <!-- <ItemGroup>
+      <AssetsToCopy Include="hillo\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(AssetsToCopy)" DestinationFolder="$(Sts2Dir)\mods\$(MSBuildProjectName)\%(RecursiveDir)" SkipUnchangedFiles="true" /> -->
+    
+    <Message Text="✅ 模组同步完成！" Importance="high" />
+  </Target>
+</Project>
