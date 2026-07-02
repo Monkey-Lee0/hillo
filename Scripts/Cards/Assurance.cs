@@ -15,5 +15,5 @@ namespace hillo.Scripts.Cards;
 public class Assurance : HilloCardModel 
 {
     public Assurance(): base(2, CardType.Power, CardRarity.Rare, TargetType.Self,
-        [new HilloEnergyUpgradeStep(-1), new HilloPowerSelfStep<AssurancePower>("Assurance")]){}
+        [new HilloEnergyUpgradeStep(-1), new HilloPowerSelfStep<AssurancePower>("Assurance")], keywords:[CardKeyword.Sly]){}
 }

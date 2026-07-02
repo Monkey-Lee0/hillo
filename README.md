@@ -1,8 +1,8 @@
 # hillo
 
-一个 **杀戮尖塔 2（Slay the Spire 2）** 卡牌 Mod，基于 [BaseLib](https://steamcommunity.com/) 与 Godot / C# 开发。为多个角色卡池新增了 37 张卡牌与若干配套能力（Power）、衍生牌。
+一个 **杀戮尖塔 2（Slay the Spire 2）** 卡牌 Mod，基于 [BaseLib](https://steamcommunity.com/) 与 Godot / C# 开发。为多个角色卡池新增了 38 张卡牌与配套能力（Power）、衍生牌。
 
-Mod 的核心是一套**基于 Step 组合的卡牌框架**：每张卡由若干可复用的「效果单元（HilloStep）」拼装而成，避免为每张卡重复编写 `OnPlay` / `OnUpgrade` / 动态变量 / 悬停提示等样板。
+Mod 的核心是一套**基于 Step 组合的卡牌 / 能力框架**：卡牌与能力都由若干可复用的「效果单元（`HilloStep`）」拼装而成，避免重复编写 `OnPlay` / 各种 Hook / `OnUpgrade` / 动态变量 / 悬停提示等样板。同一套 Step 通过一层「执行上下文（`HilloContext`）」抽象，既能在卡牌出牌时跑，也能在能力的各个 Hook 里跑。
 
 ---
 
@@ -68,7 +68,7 @@ Mod 的核心是一套**基于 Step 组合的卡牌框架**：每张卡由若干
 | 疾风步 WindWalk | 1 | 能力 | 罕见 | 你每打出一张攻击牌，本回合获得 1 点敏捷。（固有） |  |
 | 随机应变 Improvisation | 1 | 攻击 | 普通 | 造成 8(11) 伤害；敌人意图攻击则给虚弱，否则给易伤。 |  |
 | 后撤步 BackStep | 1 | 技能 | 普通 | 丢弃 3 张牌，获得 5(8) 格挡；若丢光手牌则抽 3 张。 |  |
-| 胸有成竹 Assurance | 2(1) | 能力 | 稀有 | 每打出一张非奇巧能力牌，弃牌堆加入其 3 费奇巧复制品。 |  |
+| 胸有成竹 Assurance | 2(1) | 能力 | 稀有 | 每打出一张非奇巧能力牌，弃牌堆加入其 3 费奇巧复制品。奇巧。 |  |
 
 ### 无色 · Colorless
 
@@ -90,16 +90,47 @@ Mod 的核心是一套**基于 Step 组合的卡牌框架**：每张卡由若干
 
 ---
 
-## 架构：Step 卡牌框架
+## 架构：Step 框架
 
 代码分为两层：
 
-- **`Modules/`** — 通用框架（卡牌基类 + 效果 Step 库）。
+- **`Modules/`** — 通用框架：模型基类（`Modules/Model/`）+ 效果 Step 库（`Modules/Step/`）。
 - **`Scripts/`** — 具体的卡牌、能力、卡池、Patch。
 
-### `HilloCardModel`（`Modules/Card/Model.cs`）
+### `HilloStep` 与 `HilloContext`（`Modules/Step/`）
 
-所有 Mod 卡牌继承它，构造时传入一组 `HilloStep`：
+每个 Step 是一个可复用的效果单元，覆写 `OnStep(choiceContext, ctx)` / `OnUpgrade` / `GetDynamicVars` / `GetIHoverTips` 中需要的部分。
+
+关键在于 `OnStep` 不直接读 `CardPlay`，而是读一个 **`HilloContext`** 抽象——它提供 `Player` / `Owner` / `Target` / `Vars`（值来源）/ `Card` / `CardPlay` / `IsUpgraded` / `Amount`。两种实现让同一个 Step 通用：
+
+- `CardContext` — 包裹出牌的 `CardPlay`（卡牌用）。
+- `PowerContext` — 包裹能力的 `DynamicVars` 与当前作用玩家（能力 Hook 用）；`Card` 为 null、`Amount` 为能力层数。
+
+主要 Step：
+
+| 文件 | Step | 作用 |
+|---|---|---|
+| DamageStep | `HilloDamageAll/Single/RandomStep` | 造成伤害（全体/目标/随机），`DamageVar` |
+| BlockStep | `HilloBlockSelfStep` | 获得格挡（可 `scaleByAmount`），`BlockVar` |
+| PowerStep | `HilloPowerSelf/All/Single/RandomStep<T>` · `HilloRemovePowerSelfStep<T>` | 施加/移除能力 T（可 `scaleByAmount`） |
+| HpStep | `HilloLoseHpSelfStep` / `HilloGainHpSelfStep` | 失去/回复生命（可 `scaleByAmount`） |
+| EnergyStep | `HilloGainEnergyStep` / `HilloEnergyUpgradeStep` | 获得能量 / 升级改费 |
+| StarStep | `HilloGainStarStep` / `HilloStarUpgradeStep` | 获得星星 / 升级改星费 |
+| ForgeStep | `HilloForgeSelfStep` | 铸造 |
+| HandStep | `HilloDraw/Discard/Exhaust/Create/Transform/ShuffleDiscard...Step` | 抽牌 / 弃牌 / 消耗 / 生成 / 变化 / 洗牌堆 |
+| ChannelStep | `HilloChannelOrb<T>/ChannelRandomStep` | 生成充能球 |
+| PassiveStep | `HilloPassiveAll/Single<T>` | 触发充能球被动 |
+| OrbStep | `HilloOrbSlotStep` | 增减充能球栏位（可 `bypassCap` 突破 10 上限） |
+| OstyStep | `HilloSummonStep` / `HilloOstyAttack*Step` / `HilloOstyDieStep` | 奥斯提召唤 / 攻击 / 死亡 |
+| DoomStep | `HilloDoomKillStep` | 斩杀灾厄≥生命的敌人 |
+| KeywordStep | `HilloAddKeywordUpgradeStep` | 升级时加关键字 |
+
+- **`scaleByAmount`**：能力宿主里，效果值 × 该能力的层数（`ctx.Amount`）。用于「每层 N」的能力（如 AllIn 失血 = 10×层数、Agile 格挡 = 层数）。
+- 随机取样统一用玩家自己的 RNG（`Player.PlayerRng.Rewards`），保证每玩家独立、存档可复现。
+
+### `HilloCardModel`（`Modules/Model/CardModel.cs`）
+
+卡牌继承它，构造时传入一组 `HilloStep`：
 
 ```csharp
 public class ChainLightning : HilloCardModel
@@ -113,40 +144,41 @@ public class ChainLightning : HilloCardModel
 }
 ```
 
-基类自动完成：`OnPlay`（依次执行各 Step）、`OnUpgrade`（转发给各 Step）、`CanonicalVars` / `CanonicalKeywords` / `CanonicalTags` / `ExtraHoverTips` 的聚合、以及标准卡图路径。构造参数还支持 `keywords:` / `tags:` / `extraHoverTips:` / `autoAdd:`。
+`OnPlay` 时构造 `CardContext` 依次执行各 Step；自动聚合 `CanonicalVars` / `CanonicalKeywords` / `CanonicalTags` / `ExtraHoverTips`，并处理标准卡图路径。构造参数还支持 `keywords:` / `tags:` / `extraHoverTips:` / `autoAdd:`。
 
-### `HilloStep`（`Modules/Step/`）
+### `HilloPowerModel`（`Modules/Model/PowerModel.cs`）
 
-每个 Step 是一个可复用的效果单元，覆写 `OnStep` / `OnUpgrade` / `GetDynamicVars` / `GetIHoverTips` 中需要的部分。主要 Step：
+能力继承它，在**构造函数里用 `On<Hook>(...)` 给每个 Hook 挂一组 Step**。卡只有一个 `OnPlay`，能力有很多 Hook——基类覆写了常用的带 `PlayerChoiceContext` 的 Hook，触发时套用 owner/side 守卫、构造 `PowerContext`、顺序执行注册的 Step，并聚合各 Step 的变量与提示。
 
-| 文件 | Step | 作用 |
-|---|---|---|
-| DamageStep | `HilloDamageAll/Single/RandomStep` | 造成伤害（全体/目标/随机），`DamageVar` |
-| BlockStep | `HilloBlockSelfStep` | 获得格挡，`BlockVar` |
-| PowerStep | `HilloPowerSelf/All/Single/RandomStep<T>` | 施加能力 T |
-| EnergyStep | `HilloGainEnergyStep` / `HilloEnergyUpgradeStep` | 获得能量 / 升级改费 |
-| StarStep | `HilloGainStarStep` / `HilloStarUpgradeStep` | 获得星星 / 升级改星费 |
-| ForgeStep | `HilloForgeSelfStep` | 铸造 |
-| HandStep | `HilloDraw/Discard/Exhaust/Create/Transform/ShuffleDiscard...Step` | 抽牌 / 弃牌 / 消耗 / 生成 / 变化 / 洗牌堆 |
-| ChannelStep | `HilloChannelOrb<T>/ChannelRandomStep` | 生成充能球 |
-| PassiveStep | `HilloPassiveAll/Single<T>` | 触发充能球被动 |
-| OrbStep | `HilloOrbSlotStep` | 增减充能球栏位 |
-| OstyStep | `HilloSummonStep` / `HilloOstyAttack*Step` / `HilloOstyDieStep` | 奥斯提召唤 / 攻击 / 死亡 |
-| KeywordStep | `HilloAddKeywordUpgradeStep` | 升级时加关键字 |
+```csharp
+public class UmbralIncursionPower : HilloPowerModel
+{
+    public UmbralIncursionPower() : base(PowerType.Buff, PowerStackType.Single)
+    {
+        OnPlayerTurnStart(
+            new HilloOrbSlotStep("Slot", 1),
+            new HilloChannelOrbStep<DarkOrb>("Channel", 1));
+    }
+}
+```
+
+支持的 Hook 注册方法：`OnPlayerTurnStart` / `OnSideTurnEnd`（你的回合末）/ `OnCardPlayed`（仅拥有者出牌时）/ `OnCardDiscarded` / `OnOrbChanneled`。
+
+已用此框架的能力：AllIn、UmbralIncursion、Agile、Binary、ImpendingDoom、WindWalk（含成对的临时敏捷能力）、TemporalDominion、Assurance、Malice、GrandEncore、MyriadSwords。仍手写 `CustomPowerModel` 的：LightningTime（需球类型 + 递归守卫）、SlyForm（需被弃的那张牌）、StarConversion / StarSword（缺对应 Hook + 有状态累加器）。
 
 ### 控制流包装 Step
 
-以下静态工厂把一组内层 Step 包装成一个 Step（转发变量/提示/升级，仅改变执行方式）：
+以下静态工厂把一组内层 Step 包装成一个 Step（转发变量/提示/升级，仅改变执行方式），卡牌与能力通用：
 
-- `HilloStep.When(谓词, ...steps)` — 满足条件才执行。
+- `HilloStep.When(谓词, ...steps)` — 满足条件才执行（谓词收 `HilloContext`）。
 - `HilloStep.AllPlayers(...steps)` — 对所有玩家各执行一遍（联机）。
 - `HilloStep.OtherPlayer(选择器, ...steps)` / `HilloStep.TargetPlayer(...steps)` — 对指定/目标玩家执行。
 
-内部通过 `HilloStep.PlayerOverride`（重定向作用玩家）与 `HilloStep.HostCard`（让提示反映当前卡的升级态）实现。
+内部通过 `ctx.WithPlayer(...)`（重定向作用玩家）与 `HilloStep.HostVars`（让提示反映宿主当前的变量值，如召唤数随升级/层数变化）实现。
 
-### 卡牌专属逻辑
+### 卡牌 / 能力专属逻辑
 
-条件分支、跨牌堆操作、动态数值公式等无法用通用 Step 表达的效果，写成卡牌文件内的 `private class : HilloStep`，就近收敛（例：`Hail`、`Terminal`、`SoulRecall`、`CursedEcho`）。
+条件分支、跨牌堆操作、动态数值公式、RNG 等无法用通用 Step 表达的效果，写成卡牌/能力文件内的 `private class : HilloStep`，就近收敛（卡例：`Hail`、`Terminal`、`SoulRecall`、`CursedEcho`；能力例：`Malice`、`GrandEncore`、`TemporalDominion` 的私有 step）。
 
 ### 衍生牌
 
@@ -160,6 +192,6 @@ public class ChainLightning : HilloCardModel
 dotnet build -c Debug
 ```
 
-`hillo.csproj` 会在构建后把产物复制到 `SlayTheSpire2/mods/hillo/`。需在 `.csproj` 中将 `Sts2Dir` 指向本地游戏安装路径，并配置 BaseLib 引用。本地化文件位于 `hillo/localization/zhs/`。
+`hillo.csproj` 会在构建后把产物复制到 `SlayTheSpire2/mods/hillo/`。需在 `.csproj` 中将 `Sts2Dir` 指向本地游戏安装路径，并配置 BaseLib 引用。本地化文件位于 `hillo/localization/zhs/`（中文）与 `hillo/localization/eng/`（英文）。
 
 > 图片资源（卡图 / 能力图标）已在 `.gitignore` 中忽略，不随仓库分发。
