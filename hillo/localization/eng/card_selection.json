@@ -1,0 +1,10 @@
+{
+    "RETRACE_SELECT": "Choose a card to add an Exhaust copy of to your hand.",
+    "OUT_SELECT": "Choose 2 cards to transform.",
+    "EXPLORER_SELECT": "Choose up to {Discard} cards to discard.",
+    "TRANSMUTE_SELECT": "Choose any number of cards to transform.",
+    "ALCHEMY_SELECT": "Choose a card in your hand to Exhaust.",
+    "BACKSTEP_SELECT": "Choose 3 cards to discard.",
+    "TERMINAL_HAND_SELECT": "Choose a card in your hand; its cost is reduced by 1 this combat.",
+    "TERMINAL_DRAW_SELECT": "Choose a card in your draw pile; its cost is increased by 1 this combat."
+}
