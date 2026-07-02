@@ -7,7 +7,7 @@ using hillo.Scripts.Power;
 using MegaCrit.Sts2.Core.Models.CardPools;
 using BaseLib.Abstracts;
 using BaseLib.Utils;
-using hillo.Modules.Card;
+using hillo.Modules.Model;
 using hillo.Modules.Step;
 
 namespace hillo.Scripts.Cards;

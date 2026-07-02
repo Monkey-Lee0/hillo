@@ -5,7 +5,7 @@ using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using BaseLib.Abstracts;
 using MegaCrit.Sts2.Core.HoverTips;
 
-namespace hillo.Modules.Card;
+namespace hillo.Modules.Model;
 
 
 public abstract class HilloCardModel: CustomCardModel

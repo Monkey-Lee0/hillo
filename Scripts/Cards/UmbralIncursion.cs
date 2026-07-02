@@ -6,7 +6,7 @@ using BaseLib.Utils;
 
 using hillo.Scripts.Power;
 using hillo.Modules.Step;
-using hillo.Modules.Card;
+using hillo.Modules.Model;
 
 namespace hillo.Scripts.Cards;
 

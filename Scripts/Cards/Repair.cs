@@ -8,7 +8,7 @@ using MegaCrit.Sts2.Core.ValueProps;
 using BaseLib.Utils;
 
 using hillo.Modules.Step;
-using hillo.Modules.Card;
+using hillo.Modules.Model;
 
 namespace hillo.Scripts.Cards;
 
