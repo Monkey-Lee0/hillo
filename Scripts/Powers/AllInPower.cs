@@ -17,32 +17,19 @@ using System.Linq;
 using System.Threading.Tasks;
 using MegaCrit.Sts2.Core.Models.Relics;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using hillo.Modules.Model;
+using hillo.Modules.Step;
 
 
-namespace hillo.Scripts.Power;
-    
-public class AllInPower : CustomPowerModel
+namespace hillo.Scripts.Power;      
+
+public class AllInPower: HilloPowerModel
 {
-    public override PowerType Type => PowerType.Debuff;
-    public override PowerStackType StackType => PowerStackType.Counter;
-
-    public override string? CustomPackedIconPath => "res://hillo/images/powers/AllInPower.png";
-    public override string? CustomBigIconPath => "res://hillo/images/powers/AllInPower.png";
-
-    protected override IEnumerable<DynamicVar> CanonicalVars => [
-        new HpLossVar(10m),
-        new DisplayVar<CustomPowerModel>("Blood", (model) => (Amount * 10).ToString())
-    ];
-
-    public override async Task AfterPlayerTurnStart(PlayerChoiceContext choiceContext, Player player)
+    public AllInPower(): base(PowerType.Debuff, PowerStackType.Counter)
     {
-        if (player.Creature != Owner) return;
-
-        var owner = Owner;
-        if (owner == null) return;
-
-        await CreatureCmd.Damage(choiceContext, owner, DynamicVars.HpLoss.BaseValue * Amount, ValueProp.Unblockable, dealer: null, cardSource: null);
-
-        await PowerCmd.Remove(this);
+        OnPlayerTurnStart(
+            new HilloLoseHpSelfStep(10, scaleByAmount: true),
+            new HilloRemovePowerSelfStep<AllInPower>()
+        );
     }
 }

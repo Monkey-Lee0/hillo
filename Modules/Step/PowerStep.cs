@@ -117,3 +117,12 @@ public class HilloPowerRandomStep<T> : HilloPowerAllStep<T> where T : PowerModel
         );
     }
 }
+
+// 从自身移除能力 T（若存在）。典型用途：能力在自己的 Hook 里触发后自我移除（如 AllIn）。
+public class HilloRemovePowerSelfStep<T> : HilloStep where T : PowerModel
+{
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
+    {
+        await PowerCmd.Remove<T>(ctx.Owner);
+    }
+}

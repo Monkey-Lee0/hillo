@@ -60,7 +60,7 @@ public abstract class HilloPowerModel : CustomPowerModel
     // 构造能力上下文并顺序执行某个 Hook 的 Step。
     private async Task RunHook(Hook hook, PlayerChoiceContext choiceContext, Player player, Creature? target = null, CardPlay? cardPlay = null)
     {
-        var ctx = new PowerContext(player, DynamicVars, target, cardPlay);
+        var ctx = new PowerContext(player, DynamicVars, target, cardPlay, Amount);
         foreach(var step in Steps(hook))
             await step.OnStep(choiceContext, ctx);
     }

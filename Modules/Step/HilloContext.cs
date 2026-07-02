@@ -17,6 +17,8 @@ public abstract class HilloContext
     public abstract CardModel? Card { get; }       // FromCard/cardSource 用；能力里为 null
     public abstract CardPlay? CardPlay { get; }     // 传给 GainBlock/history；能力里为 null
     public abstract bool IsUpgraded { get; }
+    // 宿主能力的层数（Amount），供需要按层缩放的 Step 用；卡牌上下文默认 1（缩放即无操作）。
+    public virtual decimal Amount => 1m;
     // 多人包装器改写「作用玩家」用；返回一个 Player 被替换、其余不变的上下文。
     public abstract HilloContext WithPlayer(Player player);
 }
@@ -51,13 +53,15 @@ public class PowerContext : HilloContext
     private readonly DynamicVarSet _vars;
     private readonly Creature? _target;
     private readonly CardPlay? _cardPlay;
+    private readonly decimal _amount;
 
-    public PowerContext(Player player, DynamicVarSet vars, Creature? target = null, CardPlay? cardPlay = null)
+    public PowerContext(Player player, DynamicVarSet vars, Creature? target = null, CardPlay? cardPlay = null, decimal amount = 1m)
     {
         _player = player;
         _vars = vars;
         _target = target;
         _cardPlay = cardPlay;
+        _amount = amount;
     }
 
     public override Player Player => _player;
@@ -66,5 +70,6 @@ public class PowerContext : HilloContext
     public override CardModel? Card => null;           // 能力没有源卡
     public override CardPlay? CardPlay => _cardPlay;
     public override bool IsUpgraded => false;          // 能力不升级（值已固化在 var/Amount）
-    public override HilloContext WithPlayer(Player player) => new PowerContext(player, _vars, _target, _cardPlay);
+    public override decimal Amount => _amount;
+    public override HilloContext WithPlayer(Player player) => new PowerContext(player, _vars, _target, _cardPlay, _amount);
 }
