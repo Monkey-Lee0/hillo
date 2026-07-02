@@ -43,10 +43,10 @@ public class MyriadSwordsPower : HilloPowerModel
             if(!enemies.Any())
                 return;
 
-            var rng = new Random();
+            var rng = ctx.Player.PlayerRng.Rewards;
             foreach(var card in blades)
             {
-                var target = enemies[rng.Next(enemies.Count)];
+                var target = enemies[rng.NextInt(enemies.Count)];
                 await CardCmd.AutoPlay(choiceContext, card, target);
             }
         }

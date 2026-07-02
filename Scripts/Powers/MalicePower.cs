@@ -35,12 +35,12 @@ public class MalicePower : HilloPowerModel
             if(ctx.CardPlay?.Card is Cards.Malice)
                 times = Math.Max(0, times - 1);
 
-            var rng = new Random();
+            var rng = ctx.Player.PlayerRng.Rewards;
             var source = ctx.CardPlay?.Card;
             for(int i=0; i<times; i++)
             {
-                var target = enemies[rng.Next(enemies.Count)];
-                switch(rng.Next(3))
+                var target = enemies[rng.NextInt(enemies.Count)];
+                switch(rng.NextInt(3))
                 {
                     case 0: await PowerCmd.Apply<VulnerablePower>(choiceContext, target, 1, owner, source); break;
                     case 1: await PowerCmd.Apply<WeakPower>(choiceContext, target, 1, owner, source); break;

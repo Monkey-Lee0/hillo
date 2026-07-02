@@ -68,7 +68,7 @@ public class HilloChannelRandomStep : HilloStep
         int count = (int)ctx.Vars[_name].BaseValue;
         for(int i=0; i<count; i++)
         {
-            var orb = OrbModel.GetRandomOrb(player.RunState.Rng.CombatOrbGeneration).ToMutable();
+            var orb = OrbModel.GetRandomOrb(player.PlayerRng.Rewards).ToMutable();
             await OrbCmd.Channel(choiceContext, orb, player);
         }
     }

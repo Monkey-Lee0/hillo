@@ -113,7 +113,7 @@ public class HilloPowerRandomStep<T> : HilloPowerAllStep<T> where T : PowerModel
         var enemies = combatState.Enemies.Where(e => e.IsAlive).ToList();
         if(enemies.Count == 0)
             return;
-        var target = player.RunState.Rng.CombatTargets.NextItem(enemies);
+        var target = player.PlayerRng.Rewards.NextItem(enemies);
         await PowerCmd.Apply<T>(
             choiceContext,
             target,
