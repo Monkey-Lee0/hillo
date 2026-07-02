@@ -36,13 +36,13 @@ public class Glitch : HilloCardModel
             _timesDiff = timesUpgradeDiff;
         }
 
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            int times = (int)cardPlay.Card.DynamicVars["Times"].BaseValue;
+            int times = (int)ctx.Vars["Times"].BaseValue;
             for(int i=0; i<times; i++)
-                await DamageCmd.Attack(cardPlay.Card.DynamicVars.Damage.BaseValue)
-                    .FromCard(cardPlay.Card)
-                    .Targeting(cardPlay.Target)
+                await DamageCmd.Attack(ctx.Vars.Damage.BaseValue)
+                    .FromCard(ctx.Card)
+                    .Targeting(ctx.Target)
                     .Execute(choiceContext);
         }
 

@@ -59,19 +59,19 @@ public class Hail : HilloCardModel
             _damageVar = new HailDamageVar();
         }
 
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var owner = CurrentPlayer(cardPlay).Creature;
+            var owner = ctx.Owner;
             if(owner.CombatState is not { } combatState)
                 return;
 
-            int mult = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+            int mult = (int)ctx.Vars[_name].BaseValue;
             int damage = FrostChanneledThisCombat() * mult;
             if(damage <= 0)
                 return;
 
             await DamageCmd.Attack(damage)
-                .FromCard(cardPlay.Card)
+                .FromCard(ctx.Card)
                 .TargetingAllOpponents(combatState)
                 .Execute(choiceContext);
         }

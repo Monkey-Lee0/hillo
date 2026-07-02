@@ -1,6 +1,5 @@
 using hillo.Modules.Step;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
@@ -27,10 +26,10 @@ public class HilloOrbSlotStep : HilloStep
         _slotsVar = new IntVar(name, slots);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
-        int amount = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+        var player = ctx.Player;
+        int amount = (int)ctx.Vars[_name].BaseValue;
         if(amount == 0)
             return;
 

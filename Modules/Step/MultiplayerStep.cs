@@ -1,5 +1,4 @@
 using hillo.Modules.Step;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.HoverTips;
@@ -9,7 +8,7 @@ using MegaCrit.Sts2.Core.Models;
 namespace hillo.Modules.Step;
 
 // 把一组内层 step 包装成「对每个玩家依次执行一遍」的单个 step。
-// 通过基类 HilloStep.PlayerOverride 把内层 step 重定向到当前遍历到的玩家。
+// 通过 ctx.WithPlayer(player) 把内层 step 重定向到当前遍历到的玩家。
 // 不直接实例化；调用 HilloStep.AllPlayers(...) 或 step.ForAllPlayers() 即可。
 public class HilloAllPlayerStep : HilloStep
 {
@@ -20,9 +19,9 @@ public class HilloAllPlayerStep : HilloStep
         _inner = inner;
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var players = cardPlay.Card.Owner.RunState?.Players;
+        var players = ctx.Player.RunState?.Players;
         if(players == null)
             return;
 
@@ -30,23 +29,12 @@ public class HilloAllPlayerStep : HilloStep
         {
             if(player.Creature == null)
                 continue;
+            var sub = ctx.WithPlayer(player);
             foreach(var step in _inner)
-            {
-                step.PlayerOverride = player;
-                try
-                {
-                    await step.OnStep(choiceContext, cardPlay);
-                }
-                finally
-                {
-                    step.PlayerOverride = null;
-                }
-            }
+                await step.OnStep(choiceContext, sub);
         }
     }
 
-    // 把动态变量 / hovertip / 升级 都转发给内层 step，
-    // HilloCardModel 装配时就能自动接管描述变量和 tip 显示。
     public override IEnumerable<DynamicVar> GetDynamicVars()
     {
         foreach(var step in _inner)
@@ -57,6 +45,7 @@ public class HilloAllPlayerStep : HilloStep
     {
         foreach(var step in _inner)
         {
+            step.HostVars = HostVars;
             step.HostCard = HostCard;
             try
             {
@@ -65,6 +54,7 @@ public class HilloAllPlayerStep : HilloStep
             }
             finally
             {
+                step.HostVars = null;
                 step.HostCard = null;
             }
         }
@@ -77,40 +67,29 @@ public class HilloAllPlayerStep : HilloStep
 }
 
 // 把一组内层 step 包装成「对指定的另一个玩家执行一遍」的单个 step。
-// 玩家通过 selector(cardPlay) 在运行时解析（出牌时才知道有谁在场）。
-// 典型用法：HilloStep.OtherPlayer(cp => cp.Card.Owner.RunState.Players.First(p => p != cp.Card.Owner), ...)
+// 玩家通过 selector(ctx) 在运行时解析（出牌时才知道有谁在场）。
 public class HilloOtherPlayerStep : HilloStep
 {
-    private readonly Func<CardPlay, Player?> _selector;
+    private readonly Func<HilloContext, Player?> _selector;
     private readonly HilloStep[] _inner;
 
-    public HilloOtherPlayerStep(Func<CardPlay, Player?> selector, params HilloStep[] inner)
+    public HilloOtherPlayerStep(Func<HilloContext, Player?> selector, params HilloStep[] inner)
     {
         _selector = selector;
         _inner = inner;
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var target = _selector(cardPlay);
+        var target = _selector(ctx);
         if(target == null || target.Creature == null)
             return;
 
+        var sub = ctx.WithPlayer(target);
         foreach(var step in _inner)
-        {
-            step.PlayerOverride = target;
-            try
-            {
-                await step.OnStep(choiceContext, cardPlay);
-            }
-            finally
-            {
-                step.PlayerOverride = null;
-            }
-        }
+            await step.OnStep(choiceContext, sub);
     }
 
-    // 同样把动态变量 / hovertip / 升级转发给内层 step。
     public override IEnumerable<DynamicVar> GetDynamicVars()
     {
         foreach(var step in _inner)
@@ -121,6 +100,7 @@ public class HilloOtherPlayerStep : HilloStep
     {
         foreach(var step in _inner)
         {
+            step.HostVars = HostVars;
             step.HostCard = HostCard;
             try
             {
@@ -129,6 +109,7 @@ public class HilloOtherPlayerStep : HilloStep
             }
             finally
             {
+                step.HostVars = null;
                 step.HostCard = null;
             }
         }

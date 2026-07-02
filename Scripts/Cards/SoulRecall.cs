@@ -23,14 +23,14 @@ public class SoulRecall : HilloCardModel
     // 将消耗堆的所有灵魂加入抽牌堆；升级版会先把它们升级。
     private class RecallSoulsStep : HilloStep
     {
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var player = CurrentPlayer(cardPlay);
+            var player = ctx.Player;
             var souls = PileType.Exhaust.GetPile(player).Cards.Where(c => c is Soul).ToList();
             if(souls.Count == 0)
                 return;
 
-            if(cardPlay.Card.IsUpgraded)
+            if(ctx.IsUpgraded)
                 foreach(var soul in souls)
                     if(soul.IsUpgradable)
                     {

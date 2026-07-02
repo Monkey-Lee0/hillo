@@ -25,9 +25,9 @@ public class RetraceStrike : HilloCardModel
     // 从弃牌堆选 1 张攻击/技能牌，克隆后加消耗关键字加入手牌
     private class CloneFromDiscardStep : HilloStep
     {
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var player = CurrentPlayer(cardPlay);
+            var player = ctx.Player;
             if(player.Creature.CombatState is not { } combatState)
                 return;
 

@@ -1,7 +1,6 @@
 using System.Linq;
 using hillo.Modules.Step;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
@@ -24,9 +23,9 @@ public class HilloPassiveAllStep<T> : HilloStep where T : OrbModel
         _timesVar = new IntVar(name, times);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
+        var player = ctx.Player;
         if(player.Creature.CombatState is not { } combatState)
             return;
 
@@ -34,7 +33,7 @@ public class HilloPassiveAllStep<T> : HilloStep where T : OrbModel
         if(orbs == null || orbs.Count == 0)
             return;
 
-        int times = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+        int times = (int)ctx.Vars[_name].BaseValue;
         for(int t=0; t<times; t++)
             foreach(var orb in orbs)
                 foreach(var enemy in combatState.Enemies.Where(e => e.IsAlive))
@@ -62,17 +61,17 @@ public class HilloPassiveSingleStep<T> : HilloPassiveAllStep<T> where T : OrbMod
     public HilloPassiveSingleStep(string name, int times=1, int upgradeDiff=0)
         :base(name, times, upgradeDiff) {}
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
+        var player = ctx.Player;
 
         var orbs = player.PlayerCombatState?.OrbQueue?.Orbs?.OfType<T>().ToList();
         if(orbs == null || orbs.Count == 0)
             return;
 
-        int times = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+        int times = (int)ctx.Vars[_name].BaseValue;
         for(int t=0; t<times; t++)
             foreach(var orb in orbs)
-                await OrbCmd.Passive(choiceContext, orb, cardPlay.Target);
+                await OrbCmd.Passive(choiceContext, orb, ctx.Target);
     }
 }

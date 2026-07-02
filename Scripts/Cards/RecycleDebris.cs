@@ -30,9 +30,9 @@ public class RecycleDebris : HilloCardModel
     // 消耗手牌中所有「碎屑」，每张得 1 星
     private class ExhaustDebrisStep : HilloStep
     {
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var player = CurrentPlayer(cardPlay);
+            var player = ctx.Player;
             var hand = PileType.Hand.GetPile(player).Cards.ToList();
             var debris = hand.Where(c => c is Debris).ToList();
             if(debris.Count == 0)

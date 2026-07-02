@@ -37,14 +37,14 @@ public class Repair : HilloCardModel
             _timesDiff = timesUpgradeDiff;
         }
 
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            int times = (int)cardPlay.Card.DynamicVars["Times"].BaseValue;
+            int times = (int)ctx.Vars["Times"].BaseValue;
             for(int i=0; i<times; i++)
                 await CreatureCmd.GainBlock(
-                    CurrentPlayer(cardPlay).Creature,
-                    cardPlay.Card.DynamicVars.Block,
-                    cardPlay
+                    ctx.Owner,
+                    ctx.Vars.Block,
+                    ctx.CardPlay
                 );
         }
 

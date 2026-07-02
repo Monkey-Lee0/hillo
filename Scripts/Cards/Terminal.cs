@@ -22,12 +22,12 @@ public class Terminal : HilloCardModel
     // 选一张手牌本场耗能 -1；选一张抽牌堆的牌本场耗能 +1。
     private class CostShiftStep : HilloStep
     {
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var player = CurrentPlayer(cardPlay);
+            var player = ctx.Player;
 
             var handPrefs = new CardSelectorPrefs(new LocString("card_selection", "TERMINAL_HAND_SELECT"), 1);
-            var handSel = await CardSelectCmd.FromHand(choiceContext, player, handPrefs, filter: null, source: cardPlay.Card);
+            var handSel = await CardSelectCmd.FromHand(choiceContext, player, handPrefs, filter: null, source: ctx.Card);
             handSel?.FirstOrDefault()?.EnergyCost.AddThisCombat(-1);
 
             var drawPrefs = new CardSelectorPrefs(new LocString("card_selection", "TERMINAL_DRAW_SELECT"), 1);

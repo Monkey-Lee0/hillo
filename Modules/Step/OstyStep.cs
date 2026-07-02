@@ -1,6 +1,5 @@
 using hillo.Modules.Step;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
@@ -24,13 +23,13 @@ public class HilloSummonStep : HilloStep
         _summonVar = new SummonVar(amount);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         await OstyCmd.Summon(
             choiceContext,
-            CurrentPlayer(cardPlay),
-            cardPlay.Card.DynamicVars.Summon.BaseValue,
-            cardPlay.Card
+            ctx.Player,
+            ctx.Vars.Summon.BaseValue,
+            ctx.Card
         );
     }
 
@@ -46,8 +45,8 @@ public class HilloSummonStep : HilloStep
     }
     public override IEnumerable<IHoverTip> GetIHoverTips()
     {
-        // 取当前显示卡上的活 var（升级后会反映新值），而非 step 持有的模板 _summonVar。
-        DynamicVar summon = HostCard != null ? HostCard.DynamicVars.Summon : _summonVar;
+        // 取宿主当前的活 var（升级后反映新值），而非 step 持有的模板 _summonVar。
+        DynamicVar summon = HostVars != null ? HostVars.Summon : _summonVar;
         yield return HoverTipFactory.Static(StaticHoverTip.SummonDynamic, summon);
     }
 }
@@ -68,16 +67,16 @@ public class HilloOstyAttackAllStep : HilloStep
         _damageVar = new OstyDamageVar(damage, ValueProp.Move);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
+        var player = ctx.Player;
         if(Osty.CheckMissingWithAnim(player))
             return;
         if(player.Creature.CombatState is not { } combatState)
             return;
         for(int i=0; i<_times; i++)
-            await DamageCmd.Attack(cardPlay.Card.DynamicVars.OstyDamage.BaseValue)
-                .FromOsty(player.Osty!, cardPlay.Card)
+            await DamageCmd.Attack(ctx.Vars.OstyDamage.BaseValue)
+                .FromOsty(player.Osty!, ctx.Card)
                 .TargetingAllOpponents(combatState)
                 .WithAttackerAnim("attack_poke", 0.3f)
                 .Execute(choiceContext);
@@ -95,21 +94,21 @@ public class HilloOstyAttackAllStep : HilloStep
     }
 }
 
-// 奥斯提攻击 cardPlay.Target
+// 奥斯提攻击 ctx.Target
 public class HilloOstyAttackSingleStep : HilloOstyAttackAllStep
 {
     public HilloOstyAttackSingleStep(int damage, int upgradeDiff=0, int times=1)
         :base(damage, upgradeDiff, times) {}
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
+        var player = ctx.Player;
         if(Osty.CheckMissingWithAnim(player))
             return;
         for(int i=0; i<_times; i++)
-            await DamageCmd.Attack(cardPlay.Card.DynamicVars.OstyDamage.BaseValue)
-                .FromOsty(player.Osty!, cardPlay.Card)
-                .Targeting(cardPlay.Target)
+            await DamageCmd.Attack(ctx.Vars.OstyDamage.BaseValue)
+                .FromOsty(player.Osty!, ctx.Card)
+                .Targeting(ctx.Target)
                 .WithAttackerAnim("attack_poke", 0.3f)
                 .Execute(choiceContext);
     }
@@ -121,16 +120,16 @@ public class HilloOstyAttackRandomStep : HilloOstyAttackAllStep
     public HilloOstyAttackRandomStep(int damage, int upgradeDiff=0, int times=1)
         :base(damage, upgradeDiff, times) {}
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
+        var player = ctx.Player;
         if(Osty.CheckMissingWithAnim(player))
             return;
         if(player.Creature.CombatState is not { } combatState)
             return;
         for(int i=0; i<_times; i++)
-            await DamageCmd.Attack(cardPlay.Card.DynamicVars.OstyDamage.BaseValue)
-                .FromOsty(player.Osty!, cardPlay.Card)
+            await DamageCmd.Attack(ctx.Vars.OstyDamage.BaseValue)
+                .FromOsty(player.Osty!, ctx.Card)
                 .TargetingRandomOpponents(combatState)
                 .WithAttackerAnim("attack_poke", 0.3f)
                 .Execute(choiceContext);
@@ -140,9 +139,9 @@ public class HilloOstyAttackRandomStep : HilloOstyAttackAllStep
 // 奥斯提死亡
 public class HilloOstyDieStep : HilloStep
 {
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
+        var player = ctx.Player;
         if(player.IsOstyAlive)
             await CreatureCmd.Kill(player.Osty!);
     }

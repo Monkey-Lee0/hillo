@@ -20,18 +20,18 @@ public class StarExplode : HilloCardModel
     // 对所有敌人造成 (StarsSpent + 升级?1:0) 的平方点伤害
     private class SquaredDamageStep : HilloStep
     {
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            int xValue = cardPlay.Resources.StarsSpent;
-            if(cardPlay.Card.IsUpgraded)
+            int xValue = ctx.CardPlay!.Resources.StarsSpent;
+            if(ctx.IsUpgraded)
                 xValue++;
 
-            var combatState = cardPlay.Card.Owner.Creature.CombatState;
+            var combatState = ctx.Owner.CombatState;
             if(combatState == null)
                 return;
 
             await DamageCmd.Attack(xValue * xValue)
-                .FromCard(cardPlay.Card)
+                .FromCard(ctx.Card)
                 .TargetingAllOpponents(combatState)
                 .Execute(choiceContext);
         }

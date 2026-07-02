@@ -1,6 +1,5 @@
 using hillo.Modules.Step;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
@@ -36,11 +35,11 @@ public class HilloGainEnergyStep: HilloStep
         _energyVar = new EnergyVar(energy);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         await PlayerCmd.GainEnergy(
-            cardPlay.Card.DynamicVars.Energy.BaseValue,
-            CurrentPlayer(cardPlay)
+            ctx.Vars.Energy.BaseValue,
+            ctx.Player
         );
     }
 

@@ -1,6 +1,5 @@
 using hillo.Modules.Step;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
@@ -21,12 +20,12 @@ public class HilloDamageAllStep: HilloStep
         _times = times;
         _damageVar = new DamageVar(damage, ValueProp.Move);
     }
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         for(int i=0; i<_times; i++)
-            await DamageCmd.Attack(cardPlay.Card.DynamicVars.Damage.BaseValue)
-                .FromCard(cardPlay.Card)
-                .TargetingAllOpponents(CurrentPlayer(cardPlay).Creature.CombatState)
+            await DamageCmd.Attack(ctx.Vars.Damage.BaseValue)
+                .FromCard(ctx.Card)
+                .TargetingAllOpponents(ctx.Owner.CombatState)
                 .Execute(choiceContext);
     }
     public override void OnUpgrade(CardModel card)
@@ -45,12 +44,12 @@ public class HilloDamageSingleStep: HilloDamageAllStep
 {
     public HilloDamageSingleStep(int damage, int upgradeDiff=0, int times=1)
         :base(damage, upgradeDiff, times) {}
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         for(int i=0; i<_times; i++)
-            await DamageCmd.Attack(cardPlay.Card.DynamicVars.Damage.BaseValue)
-                .FromCard(cardPlay.Card)
-                .Targeting(cardPlay.Target)
+            await DamageCmd.Attack(ctx.Vars.Damage.BaseValue)
+                .FromCard(ctx.Card)
+                .Targeting(ctx.Target)
                 .Execute(choiceContext);
     }
 }
@@ -59,12 +58,12 @@ public class HilloDamageRandomStep: HilloDamageAllStep
 {
     public HilloDamageRandomStep(int damage, int upgradeDiff=0, int times=1)
         :base(damage, upgradeDiff, times) {}
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         for(int i=0; i<_times; i++)
-            await DamageCmd.Attack(cardPlay.Card.DynamicVars.Damage.BaseValue)
-                .FromCard(cardPlay.Card)
-                .TargetingRandomOpponents(CurrentPlayer(cardPlay).Creature.CombatState)
+            await DamageCmd.Attack(ctx.Vars.Damage.BaseValue)
+                .FromCard(ctx.Card)
+                .TargetingRandomOpponents(ctx.Owner.CombatState)
                 .Execute(choiceContext);
     }
 }

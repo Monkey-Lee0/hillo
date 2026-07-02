@@ -33,16 +33,16 @@ public class Explorer : HilloCardModel
             _discardVar = new IntVar(_name, discard);
         }
 
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var player = CurrentPlayer(cardPlay);
-            int max = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+            var player = ctx.Player;
+            int max = (int)ctx.Vars[_name].BaseValue;
 
             var locString = new LocString("card_selection", "EXPLORER_SELECT");
-            locString.Add(cardPlay.Card.DynamicVars[_name]);
+            locString.Add(ctx.Vars[_name]);
 
             var prefs = new CardSelectorPrefs(locString, 0, max);
-            var selected = await CardSelectCmd.FromHand(choiceContext, player, prefs, filter: null, source: cardPlay.Card);
+            var selected = await CardSelectCmd.FromHand(choiceContext, player, prefs, filter: null, source: ctx.Card);
 
             if(selected == null || !selected.Any())
                 return;

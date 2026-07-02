@@ -24,12 +24,12 @@ public class HilloDrawCardStep : HilloStep
         _drawVar = new IntVar(name, draw);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         await CardPileCmd.Draw(
             choiceContext,
-            cardPlay.Card.DynamicVars[_name].BaseValue,
-            CurrentPlayer(cardPlay)
+            ctx.Vars[_name].BaseValue,
+            ctx.Player
         );
     }
 
@@ -48,9 +48,9 @@ public class HilloDrawCardStep : HilloStep
 // 将弃牌堆洗入抽牌堆
 public class HilloShuffleDiscardStep : HilloStep
 {
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        await CardPileCmd.Shuffle(choiceContext, CurrentPlayer(cardPlay));
+        await CardPileCmd.Shuffle(choiceContext, ctx.Player);
     }
 }
 
@@ -71,10 +71,10 @@ public class HilloDiscardCardStep : HilloStep
         _discardVar = new IntVar(name, discard);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
-        int count = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+        var player = ctx.Player;
+        int count = (int)ctx.Vars[_name].BaseValue;
 
         var locString = new LocString("card_selection", _locKey);
 
@@ -84,7 +84,7 @@ public class HilloDiscardCardStep : HilloStep
             player,
             prefs,
             filter: null,
-            source: cardPlay.Card
+            source: ctx.Card
         );
 
         if(selected == null || !selected.Any())
@@ -123,10 +123,10 @@ public class HilloExhaustCardStep : HilloStep
         _exhaustVar = new IntVar(name, exhaust);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
-        int count = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+        var player = ctx.Player;
+        int count = (int)ctx.Vars[_name].BaseValue;
 
         var locString = new LocString("card_selection", _locKey);
 
@@ -136,7 +136,7 @@ public class HilloExhaustCardStep : HilloStep
             player,
             prefs,
             filter: null,
-            source: cardPlay.Card
+            source: ctx.Card
         );
 
         if(selected == null || !selected.Any())
@@ -170,13 +170,13 @@ public class HilloCreateCardStep<T> : HilloStep where T : CardModel, new()
         _upgrade = upgrade;
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
+        var player = ctx.Player;
         if(player.Creature.CombatState is not { } combatState)
             return;
 
-        bool upgrade = _upgrade && cardPlay.Card.IsUpgraded;
+        bool upgrade = _upgrade && ctx.IsUpgraded;
         for(int i=0; i<_count; i++)
         {
             var card = combatState.CreateCard<T>(player);
@@ -218,13 +218,13 @@ public class HilloTransformCardStep<T> : HilloStep where T : CardModel, new()
         _countVar = new IntVar(name, count);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
+        var player = ctx.Player;
         if(player.Creature.CombatState is not { } combatState)
             return;
 
-        int count = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+        int count = (int)ctx.Vars[_name].BaseValue;
 
         var locString = new LocString("card_selection", _locKey);
         // max < 0 表示恰好 count 张，否则为 [count, max] 区间
@@ -236,13 +236,13 @@ public class HilloTransformCardStep<T> : HilloStep where T : CardModel, new()
             player,
             prefs,
             filter: null,
-            source: cardPlay.Card
+            source: ctx.Card
         );
 
         if(selected == null || !selected.Any())
             return;
 
-        bool upgrade = _upgradeT && cardPlay.Card.IsUpgraded;
+        bool upgrade = _upgradeT && ctx.IsUpgraded;
         foreach(var original in selected)
         {
             var replacement = combatState.CreateCard<T>(player);
@@ -269,6 +269,6 @@ public class HilloTransformCardStep<T> : HilloStep where T : CardModel, new()
     {
         var model = ModelDb.Card<T>();
         if(model != null)
-            yield return HoverTipFactory.FromCard(model, upgrade: _upgradeT);
+            yield return HoverTipFactory.FromCard(model, upgrade: _upgradeT && (HostCard?.IsUpgraded ?? false));
     }
 }

@@ -21,12 +21,12 @@ public class BackStep : HilloCardModel
     // 丢弃3张牌；若丢光手牌则抽3张
     private class DiscardThenDrawStep : HilloStep
     {
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var player = cardPlay.Card.Owner;
+            var player = ctx.Player;
 
             var prefs = new CardSelectorPrefs(new LocString("card_selection", "BACKSTEP_SELECT"), 3);
-            var selected = await CardSelectCmd.FromHand(choiceContext, player, prefs, filter: null, source: cardPlay.Card);
+            var selected = await CardSelectCmd.FromHand(choiceContext, player, prefs, filter: null, source: ctx.Card);
 
             int handCount = player.PlayerCombatState.Hand.Cards.Count();
 

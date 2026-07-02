@@ -1,7 +1,6 @@
 using hillo.Modules.Step;
 using hillo.Modules.Model;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
@@ -40,11 +39,11 @@ public class HilloGainStarStep: HilloStep
         _starsVar = new StarsVar(stars);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         await PlayerCmd.GainStars(
-            cardPlay.Card.DynamicVars.Stars.BaseValue,
-            CurrentPlayer(cardPlay)
+            ctx.Vars.Stars.BaseValue,
+            ctx.Player
         );
     }
 

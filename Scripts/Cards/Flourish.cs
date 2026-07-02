@@ -18,9 +18,9 @@ public class Flourish : HilloCardModel
         )]) {}
 
     // 奥斯提血量等于血量上限
-    private static bool OstyFullHp(CardPlay cardPlay)
+    private static bool OstyFullHp(HilloContext ctx)
     {
-        var player = cardPlay.Card.Owner;
+        var player = ctx.Player;
         return player.IsOstyAlive && player.Osty!.CurrentHp >= player.Osty!.MaxHp;
     }
 }

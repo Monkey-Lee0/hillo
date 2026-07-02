@@ -1,6 +1,5 @@
 using hillo.Modules.Step;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
@@ -24,13 +23,13 @@ public class HilloBlockSelfStep : HilloStep
         _blockVar = new BlockVar(block, ValueProp.Move);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         for(int i=0; i<_times; i++)
             await CreatureCmd.GainBlock(
-                CurrentPlayer(cardPlay).Creature,
-                cardPlay.Card.DynamicVars.Block,
-                cardPlay
+                ctx.Owner,
+                ctx.Vars.Block,
+                ctx.CardPlay
             );
     }
 

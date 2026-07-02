@@ -1,7 +1,6 @@
 using System.Linq;
 using hillo.Modules.Step;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
@@ -26,14 +25,14 @@ public class HilloPowerSelfStep<T> : HilloStep where T : PowerModel, new()
         _needTips = needTips;
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         await PowerCmd.Apply<T>(
             choiceContext,
-            [CurrentPlayer(cardPlay).Creature],
-            cardPlay.Card.DynamicVars[_name].BaseValue,
+            [ctx.Owner],
+            ctx.Vars[_name].BaseValue,
             applier: null,
-            cardSource: cardPlay.Card
+            cardSource: ctx.Card
         );
     }
 
@@ -59,9 +58,9 @@ public class HilloPowerAllStep<T> : HilloPowerSelfStep<T> where T : PowerModel, 
     public HilloPowerAllStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false)
         :base(name, stacks, upgradeDiff, needTips) {}
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var owner = CurrentPlayer(cardPlay).Creature;
+        var owner = ctx.Owner;
         if(owner.CombatState is not { } combatState)
             return;
         var enemies = combatState.Enemies.Where(e => e.IsAlive).ToList();
@@ -70,9 +69,9 @@ public class HilloPowerAllStep<T> : HilloPowerSelfStep<T> where T : PowerModel, 
         await PowerCmd.Apply<T>(
             choiceContext,
             enemies,
-            cardPlay.Card.DynamicVars[_name].BaseValue,
+            ctx.Vars[_name].BaseValue,
             applier: owner,
-            cardSource: cardPlay.Card
+            cardSource: ctx.Card
         );
     }
 }
@@ -82,14 +81,14 @@ public class HilloPowerSingleStep<T> : HilloPowerAllStep<T> where T : PowerModel
     public HilloPowerSingleStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false)
         :base(name, stacks, upgradeDiff, needTips) {}
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         await PowerCmd.Apply<T>(
             choiceContext,
-            cardPlay.Target,
-            cardPlay.Card.DynamicVars[_name].BaseValue,
-            applier: CurrentPlayer(cardPlay).Creature,
-            cardSource: cardPlay.Card
+            ctx.Target,
+            ctx.Vars[_name].BaseValue,
+            applier: ctx.Owner,
+            cardSource: ctx.Card
         );
     }
 }
@@ -99,9 +98,9 @@ public class HilloPowerRandomStep<T> : HilloPowerAllStep<T> where T : PowerModel
     public HilloPowerRandomStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false)
         :base(name, stacks, upgradeDiff, needTips) {}
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
+        var player = ctx.Player;
         var owner = player.Creature;
         if(owner.CombatState is not { } combatState)
             return;
@@ -112,9 +111,9 @@ public class HilloPowerRandomStep<T> : HilloPowerAllStep<T> where T : PowerModel
         await PowerCmd.Apply<T>(
             choiceContext,
             target,
-            cardPlay.Card.DynamicVars[_name].BaseValue,
+            ctx.Vars[_name].BaseValue,
             applier: owner,
-            cardSource: cardPlay.Card
+            cardSource: ctx.Card
         );
     }
 }

@@ -24,6 +24,7 @@ public abstract class HilloCardModel: CustomCardModel
                 yield return t;
             foreach(var step in _steps)
             {
+                step.HostVars = DynamicVars;
                 step.HostCard = this;
                 try
                 {
@@ -32,6 +33,7 @@ public abstract class HilloCardModel: CustomCardModel
                 }
                 finally
                 {
+                    step.HostVars = null;
                     step.HostCard = null;
                 }
             }
@@ -52,9 +54,10 @@ public abstract class HilloCardModel: CustomCardModel
     }
     protected override async Task OnPlay(PlayerChoiceContext choiceContext, CardPlay cardPlay)
     {
+        var ctx = new CardContext(cardPlay);
         foreach (var step in _steps)
         {
-            await step.OnStep(choiceContext, cardPlay);
+            await step.OnStep(choiceContext, ctx);
         }
     }
     protected override void OnUpgrade()

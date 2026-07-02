@@ -20,12 +20,12 @@ public class Improvisation : HilloCardModel
     // 攻击意图 -> 虚弱，否则 -> 易伤
     private class ImproviseDebuffStep : HilloStep
     {
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            if(cardPlay.Target.Monster.IntendsToAttack)
-                await PowerCmd.Apply<WeakPower>(choiceContext, cardPlay.Target, 1, cardPlay.Card.Owner.Creature, cardPlay.Card);
+            if(ctx.Target.Monster.IntendsToAttack)
+                await PowerCmd.Apply<WeakPower>(choiceContext, ctx.Target, 1, ctx.Owner, ctx.Card);
             else
-                await PowerCmd.Apply<VulnerablePower>(choiceContext, cardPlay.Target, 1, cardPlay.Card.Owner.Creature, cardPlay.Card);
+                await PowerCmd.Apply<VulnerablePower>(choiceContext, ctx.Target, 1, ctx.Owner, ctx.Card);
         }
         public override IEnumerable<IHoverTip> GetIHoverTips()
         {

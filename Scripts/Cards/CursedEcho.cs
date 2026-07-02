@@ -37,22 +37,22 @@ public class CursedEcho : HilloCardModel
             _diff = upgradeDiff;
         }
 
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var player = CurrentPlayer(cardPlay);
+            var player = ctx.Player;
             if(Osty.CheckMissingWithAnim(player))
                 return;
             if(player.Creature.CombatState is not { } combatState)
                 return;
 
-            bool doomed = cardPlay.Target?.HasPower<DoomPower>() ?? false;
+            bool doomed = ctx.Target?.HasPower<DoomPower>() ?? false;
             for(int i=0; i<_times; i++)
             {
-                AttackCommand atk = DamageCmd.Attack(cardPlay.Card.DynamicVars.OstyDamage.BaseValue)
-                    .FromOsty(player.Osty!, cardPlay.Card);
+                AttackCommand atk = DamageCmd.Attack(ctx.Vars.OstyDamage.BaseValue)
+                    .FromOsty(player.Osty!, ctx.Card);
                 atk = doomed
                     ? atk.TargetingAllOpponents(combatState)
-                    : atk.Targeting(cardPlay.Target);
+                    : atk.Targeting(ctx.Target);
                 await atk.WithAttackerAnim("attack_poke", 0.3f).Execute(choiceContext);
             }
         }

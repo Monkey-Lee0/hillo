@@ -25,14 +25,14 @@ public class Out : HilloCardModel
     // 选择 2 张手牌，各自变化为一张随机仆从牌
     private class RandomMinionTransformStep : HilloStep
     {
-        public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var player = cardPlay.Card.Owner;
+            var player = ctx.Player;
             if(player.Creature.CombatState is not { } combatState)
                 return;
 
             var prefs = new CardSelectorPrefs(new LocString("card_selection", "OUT_SELECT"), 2);
-            var selected = await CardSelectCmd.FromHand(choiceContext, player, prefs, filter: null, source: cardPlay.Card);
+            var selected = await CardSelectCmd.FromHand(choiceContext, player, prefs, filter: null, source: ctx.Card);
 
             if(selected == null || !selected.Any())
                 return;
@@ -48,7 +48,7 @@ public class Out : HilloCardModel
                 var minion = rng.NextItem(allMinionCards);
                 var replacement = combatState.CreateCard(minion, player);
 
-                if(cardPlay.Card.IsUpgraded && replacement.IsUpgradable)
+                if(ctx.IsUpgraded && replacement.IsUpgradable)
                 {
                     replacement.UpgradeInternal();
                     replacement.FinalizeUpgradeInternal();

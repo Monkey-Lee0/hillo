@@ -1,8 +1,6 @@
 using hillo.Modules.Step;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
-using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models;
 
@@ -23,12 +21,12 @@ public class HilloForgeSelfStep : HilloStep
         _forgeVar = new IntVar(name, forge);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         await ForgeCmd.Forge(
-            cardPlay.Card.DynamicVars[_name].BaseValue,
-            CurrentPlayer(cardPlay),
-            cardPlay.Card
+            ctx.Vars[_name].BaseValue,
+            ctx.Player,
+            ctx.Card
         );
     }
 
@@ -41,10 +39,5 @@ public class HilloForgeSelfStep : HilloStep
     public override IEnumerable<DynamicVar> GetDynamicVars()
     {
         yield return _forgeVar;
-    }
-    public override IEnumerable<IHoverTip> GetIHoverTips()
-    {
-        foreach(var tip in HoverTipFactory.FromForge())
-            yield return tip;
     }
 }

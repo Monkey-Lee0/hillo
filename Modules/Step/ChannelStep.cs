@@ -1,6 +1,5 @@
 using hillo.Modules.Step;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.HoverTips;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
@@ -23,10 +22,10 @@ public class HilloChannelOrbStep<T> : HilloStep where T : OrbModel
         _countVar = new IntVar(name, count);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
-        int count = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+        var player = ctx.Player;
+        int count = (int)ctx.Vars[_name].BaseValue;
         for(int i=0; i<count; i++)
             await OrbCmd.Channel<T>(choiceContext, player);
     }
@@ -63,10 +62,10 @@ public class HilloChannelRandomStep : HilloStep
         _countVar = new IntVar(name, count);
     }
 
-    public override async Task OnStep(PlayerChoiceContext choiceContext, CardPlay cardPlay)
+    public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
-        var player = CurrentPlayer(cardPlay);
-        int count = (int)cardPlay.Card.DynamicVars[_name].BaseValue;
+        var player = ctx.Player;
+        int count = (int)ctx.Vars[_name].BaseValue;
         for(int i=0; i<count; i++)
         {
             var orb = OrbModel.GetRandomOrb(player.RunState.Rng.CombatOrbGeneration).ToMutable();
