@@ -7,40 +7,26 @@ using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using BaseLib.Abstracts;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.HoverTips;
-using MegaCrit.Sts2.Core.Localization.DynamicVars;
-using MegaCrit.Sts2.Core.ValueProps;
+
+using hillo.Modules.Step;
+using hillo.Modules.Model;
 
 namespace hillo.Scripts.Power;
 
-public class AgilePower : CustomPowerModel
+// 每丢弃一张牌，获得 Amount 点格挡（block = 1 × 层数）。
+public class AgilePower : HilloPowerModel
 {
-    public override PowerType Type => PowerType.Buff;
-    // 可堆叠，每层获得 1 格挡
-    public override PowerStackType StackType => PowerStackType.Counter;
-    public override string? CustomPackedIconPath => "res://hillo/images/powers/AgilePower.png";
-    public override string? CustomBigIconPath => "res://hillo/images/powers/AgilePower.png";
-
-    // 每丢弃一张牌，获得 Amount 格挡
-    public override async Task AfterCardDiscarded(PlayerChoiceContext choiceContext, CardModel card)
+    public AgilePower() : base(PowerType.Buff, PowerStackType.Counter)
     {
-        if (card.Owner.Creature != Owner) return;
-
-        int blockAmount = (int)Amount; // Amount 表示层数
-        await CreatureCmd.GainBlock(Owner, new BlockVar(blockAmount, ValueProp.Move), null);
-    }
-
-    protected override IEnumerable<IHoverTip> ExtraHoverTips 
-    {
-        get
-        {
-            yield return HoverTipFactory.Static(StaticHoverTip.Block);
-        }
+        OnCardDiscarded(new HilloBlockSelfStep(1, scaleByAmount: true));
     }
 }
+
+// 每丢弃一张牌，若该牌未附加奇巧则为其附加奇巧。需要「被丢弃的那张牌」，故保持手写。
 public class SlyFormPower : CustomPowerModel
 {
     public override PowerType Type => PowerType.Buff;
-    public override PowerStackType StackType => PowerStackType.Single; 
+    public override PowerStackType StackType => PowerStackType.Single;
     public override string? CustomPackedIconPath => "res://hillo/images/powers/SlyFormPower.png";
     public override string? CustomBigIconPath => "res://hillo/images/powers/SlyFormPower.png";
 
@@ -53,8 +39,8 @@ public class SlyFormPower : CustomPowerModel
 
         card.AddKeyword(CardKeyword.Sly);
     }
-    
-    protected override IEnumerable<IHoverTip> ExtraHoverTips 
+
+    protected override IEnumerable<IHoverTip> ExtraHoverTips
     {
         get
         {

@@ -1,89 +1,70 @@
-using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities;
-using MegaCrit.Sts2.Core.Entities.Cards;
-using MegaCrit.Sts2.Core.Entities.Creatures;
-using MegaCrit.Sts2.Core.Entities.Players;
-using MegaCrit.Sts2.Core.Entities.Powers;
-using MegaCrit.Sts2.Core.GameActions.Multiplayer;
-using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Models.Cards;
-using MegaCrit.Sts2.Core.Models.Powers;
-using MegaCrit.Sts2.Core.HoverTips;
-using MegaCrit.Sts2.Core.Combat;
-using BaseLib.Abstracts;
-using BaseLib.Utils;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MegaCrit.Sts2.Core.Models.Relics;
+using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Powers;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Cards;
+
+using hillo.Modules.Step;
+using hillo.Modules.Model;
 
 namespace hillo.Scripts.Power;
 
-public class GrandEncorePower : CustomPowerModel
+// 回合开始时打出 1 张闪亮登场；回合结束时打出消耗堆中所有闪亮登场。
+public class GrandEncorePower : HilloPowerModel
 {
     private const string DramaticEntranceId = "DRAMATIC_ENTRANCE";
-    public override PowerType Type => PowerType.Buff;
-    public override PowerStackType StackType => PowerStackType.Single;
 
-    public override string? CustomPackedIconPath => "res://hillo/images/powers/GrandEncorePower.png";
-    public override string? CustomBigIconPath => "res://hillo/images/powers/GrandEncorePower.png";
-
-    public override async Task AfterPlayerTurnStart(PlayerChoiceContext choiceContext, Player player)
+    public GrandEncorePower() : base(PowerType.Buff, PowerStackType.Single)
     {
-        if (player.Creature != Owner) return;
-
-        int times = (int)Amount;
-        for(int i=0; i<times; i++)
-        {
-            if (player.Creature != Owner) return;
-
-            var combatState = player.Creature.CombatState;
-            if (combatState == null) return;
-
-            var card = combatState.CreateCard<DramaticEntrance>(player);
-
-            await CardCmd.AutoPlay(choiceContext, card, null);
-        }
-
+        OnPlayerTurnStart(new PlayEntranceStep());
+        OnSideTurnEnd(new ReplayExhaustedEntrancesStep());
     }
 
-    public override async Task BeforeSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, System.Collections.Generic.IEnumerable<Creature> participants)
+    private class PlayEntranceStep : HilloStep
     {
-        if (side != CombatSide.Player) return;
-
-        var owner = Owner;
-        if (owner == null) return;
-
-        var player = owner.Player;
-        if (player == null) return;
-
-        var combatState = owner.CombatState;
-        if (combatState == null) return;
-
-        int times = (int)Amount;
-
-        var exhaustPile = player.Piles.FirstOrDefault(p => p.Type == PileType.Exhaust);
-        if (exhaustPile != null)
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
+            var player = ctx.Player;
+            int times = (int)ctx.Amount;
             for(int i=0; i<times; i++)
             {
-                var shiningCards = exhaustPile.Cards
-                    .Where(c => string.Equals(c.Id.Entry, DramaticEntranceId, System.StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-                foreach (var card in shiningCards)
-                {
-                    await CardCmd.AutoPlay(choiceContext, card, null);
-                }
+                if(player.Creature.CombatState is not { } combatState)
+                    return;
+                var card = combatState.CreateCard<DramaticEntrance>(player);
+                await CardCmd.AutoPlay(choiceContext, card, null);
             }
+        }
+
+        public override IEnumerable<IHoverTip> GetIHoverTips()
+        {
+            var card = ModelDb.Card<DramaticEntrance>();
+            if(card != null)
+                yield return HoverTipFactory.FromCard(card, upgrade: false);
         }
     }
 
-    protected override IEnumerable<IHoverTip> ExtraHoverTips
+    private class ReplayExhaustedEntrancesStep : HilloStep
     {
-        get
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
         {
-            var card = ModelDb.Card<DramaticEntrance>();
-            if (card != null)
-                yield return HoverTipFactory.FromCard(card, upgrade: false);
+            var player = ctx.Player;
+            var exhaustPile = player.Piles.FirstOrDefault(p => p.Type == PileType.Exhaust);
+            if(exhaustPile == null)
+                return;
+            int times = (int)ctx.Amount;
+            for(int i=0; i<times; i++)
+            {
+                var shining = exhaustPile.Cards
+                    .Where(c => string.Equals(c.Id.Entry, DramaticEntranceId, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+                foreach(var card in shining)
+                    await CardCmd.AutoPlay(choiceContext, card, null);
+            }
         }
     }
 }

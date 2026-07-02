@@ -14,23 +14,35 @@ public class HilloBlockSelfStep : HilloStep
     protected int _block;
     protected readonly int _diff;
     protected int _times;
+    protected bool _scaleByAmount;
 
-    public HilloBlockSelfStep(int block, int upgradeDiff=0, int times=1)
+    public HilloBlockSelfStep(int block, int upgradeDiff=0, int times=1, bool scaleByAmount=false)
     {
         _block = block;
         _diff = upgradeDiff;
         _times = times;
+        _scaleByAmount = scaleByAmount;
         _blockVar = new BlockVar(block, ValueProp.Move);
     }
 
     public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         for(int i=0; i<_times; i++)
-            await CreatureCmd.GainBlock(
-                ctx.Owner,
-                ctx.Vars.Block,
-                ctx.CardPlay
-            );
+        {
+            if(_scaleByAmount)
+                await CreatureCmd.GainBlock(
+                    ctx.Owner,
+                    ctx.Vars.Block.BaseValue * ctx.Amount,
+                    ctx.Vars.Block.Props,
+                    ctx.CardPlay
+                );
+            else
+                await CreatureCmd.GainBlock(
+                    ctx.Owner,
+                    ctx.Vars.Block,
+                    ctx.CardPlay
+                );
+        }
     }
 
     public override void OnUpgrade(CardModel card)

@@ -15,22 +15,28 @@ public class HilloPowerSelfStep<T> : HilloStep where T : PowerModel, new()
     protected int _stacks;
     protected readonly int _diff;
     protected bool _needTips;
+    protected bool _scaleByAmount;
 
-    public HilloPowerSelfStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false)
+    public HilloPowerSelfStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false, bool scaleByAmount=false)
     {
         _name = name;
         _stacks = stacks;
         _diff = upgradeDiff;
         _stacksVar = new IntVar(name, stacks);
         _needTips = needTips;
+        _scaleByAmount = scaleByAmount;
     }
+
+    // 施加层数：scaleByAmount 时 × 宿主能力的 Amount（用于「每层施加 N」的能力）。
+    protected decimal Stacks(HilloContext ctx)
+        => ctx.Vars[_name].BaseValue * (_scaleByAmount ? ctx.Amount : 1m);
 
     public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         await PowerCmd.Apply<T>(
             choiceContext,
             [ctx.Owner],
-            ctx.Vars[_name].BaseValue,
+            Stacks(ctx),
             applier: null,
             cardSource: ctx.Card
         );
@@ -55,8 +61,8 @@ public class HilloPowerSelfStep<T> : HilloStep where T : PowerModel, new()
 
 public class HilloPowerAllStep<T> : HilloPowerSelfStep<T> where T : PowerModel, new()
 {
-    public HilloPowerAllStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false)
-        :base(name, stacks, upgradeDiff, needTips) {}
+    public HilloPowerAllStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false, bool scaleByAmount=false)
+        :base(name, stacks, upgradeDiff, needTips, scaleByAmount) {}
 
     public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
@@ -69,7 +75,7 @@ public class HilloPowerAllStep<T> : HilloPowerSelfStep<T> where T : PowerModel, 
         await PowerCmd.Apply<T>(
             choiceContext,
             enemies,
-            ctx.Vars[_name].BaseValue,
+            Stacks(ctx),
             applier: owner,
             cardSource: ctx.Card
         );
@@ -78,15 +84,15 @@ public class HilloPowerAllStep<T> : HilloPowerSelfStep<T> where T : PowerModel, 
 
 public class HilloPowerSingleStep<T> : HilloPowerAllStep<T> where T : PowerModel, new()
 {
-    public HilloPowerSingleStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false)
-        :base(name, stacks, upgradeDiff, needTips) {}
+    public HilloPowerSingleStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false, bool scaleByAmount=false)
+        :base(name, stacks, upgradeDiff, needTips, scaleByAmount) {}
 
     public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
         await PowerCmd.Apply<T>(
             choiceContext,
             ctx.Target,
-            ctx.Vars[_name].BaseValue,
+            Stacks(ctx),
             applier: ctx.Owner,
             cardSource: ctx.Card
         );
@@ -95,8 +101,8 @@ public class HilloPowerSingleStep<T> : HilloPowerAllStep<T> where T : PowerModel
 
 public class HilloPowerRandomStep<T> : HilloPowerAllStep<T> where T : PowerModel, new()
 {
-    public HilloPowerRandomStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false)
-        :base(name, stacks, upgradeDiff, needTips) {}
+    public HilloPowerRandomStep(string name, int stacks=1, int upgradeDiff=0, bool needTips=false, bool scaleByAmount=false)
+        :base(name, stacks, upgradeDiff, needTips, scaleByAmount) {}
 
     public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
@@ -111,7 +117,7 @@ public class HilloPowerRandomStep<T> : HilloPowerAllStep<T> where T : PowerModel
         await PowerCmd.Apply<T>(
             choiceContext,
             target,
-            ctx.Vars[_name].BaseValue,
+            Stacks(ctx),
             applier: owner,
             cardSource: ctx.Card
         );

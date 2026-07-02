@@ -1,45 +1,42 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Commands;
-using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Powers;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.HoverTips;
+using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using MegaCrit.Sts2.Core.Models.Powers;
-using BaseLib.Abstracts;
+
+using hillo.Modules.Step;
+using hillo.Modules.Model;
 
 namespace hillo.Scripts.Power;
 
-public class TemporalDominionPower : CustomPowerModel
+// 每回合结束时：奥斯提死亡，给予所有敌人「奥斯提血量上限 × Amount」层灾厄。
+public class TemporalDominionPower : HilloPowerModel
 {
-    public override PowerType Type => PowerType.Buff;
-    // Counter：让 Amount 保留施加的倍率（Single 会强制为 1）。
-    public override PowerStackType StackType => PowerStackType.Counter;
-
-    public override string? CustomPackedIconPath => "res://hillo/images/powers/TemporalDominionPower.png";
-    public override string? CustomBigIconPath => "res://hillo/images/powers/TemporalDominionPower.png";
-
-    // 每回合（你的回合）结束时：奥斯提死亡，给予所有敌人 奥斯提血量上限 × Amount 层灾厄。
-    public override async Task BeforeSideTurnEnd(PlayerChoiceContext choiceContext, CombatSide side, IEnumerable<Creature> participants)
+    public TemporalDominionPower() : base(PowerType.Buff, PowerStackType.Counter)
     {
-        if(side != CombatSide.Player)
-            return;
-        var owner = Owner;
-        if(owner?.Player is not { } player || !player.IsOstyAlive)
-            return;
-        if(owner.CombatState is not { } combatState)
-            return;
-
-        int doom = player.Osty!.MaxHp * (int)Amount;
-        await CreatureCmd.Kill(player.Osty!);
-        if(doom > 0)
-            await PowerCmd.Apply<DoomPower>(choiceContext, combatState.HittableEnemies, doom, owner, null);
+        OnSideTurnEnd(new OstyDoomStep());
     }
 
-    protected override IEnumerable<IHoverTip> ExtraHoverTips
+    // 读奥斯提血量上限（需在死亡前读）× Amount 作为灾厄量，施加给全体敌人，然后杀死奥斯提。
+    private class OstyDoomStep : HilloStep
     {
-        get
+        public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
+        {
+            var player = ctx.Player;
+            if(!player.IsOstyAlive)
+                return;
+            if(ctx.Owner.CombatState is not { } combatState)
+                return;
+
+            int doom = player.Osty!.MaxHp * (int)ctx.Amount;
+            await CreatureCmd.Kill(player.Osty!);
+            if(doom > 0)
+                await PowerCmd.Apply<DoomPower>(choiceContext, combatState.HittableEnemies, doom, ctx.Owner, null);
+        }
+
+        public override IEnumerable<IHoverTip> GetIHoverTips()
         {
             yield return HoverTipFactory.FromPower<DoomPower>();
         }

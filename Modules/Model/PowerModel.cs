@@ -86,6 +86,8 @@ public abstract class HilloPowerModel : CustomPowerModel
     {
         if(Owner.Player is not { } player)
             return;
+        if(cardPlay.Card.Owner != player)   // 只在拥有者自己出牌时触发
+            return;
         await RunHook(Hook.CardPlayed, choiceContext, player, cardPlay: cardPlay);
     }
 
