@@ -24,7 +24,7 @@ public class HilloDamageAllStep: HilloStep
     {
         for(int i=0; i<_times; i++)
             await DamageCmd.Attack(ctx.Vars.Damage.BaseValue)
-                .FromCard(ctx.Card)
+                .FromCard(ctx.Card, ctx.CardPlay)
                 .TargetingAllOpponents(ctx.Owner.CombatState)
                 .Execute(choiceContext);
     }
@@ -48,7 +48,7 @@ public class HilloDamageSingleStep: HilloDamageAllStep
     {
         for(int i=0; i<_times; i++)
             await DamageCmd.Attack(ctx.Vars.Damage.BaseValue)
-                .FromCard(ctx.Card)
+                .FromCard(ctx.Card, ctx.CardPlay)
                 .Targeting(ctx.Target)
                 .Execute(choiceContext);
     }
@@ -62,7 +62,7 @@ public class HilloDamageRandomStep: HilloDamageAllStep
     {
         for(int i=0; i<_times; i++)
             await DamageCmd.Attack(ctx.Vars.Damage.BaseValue)
-                .FromCard(ctx.Card)
+                .FromCard(ctx.Card, ctx.CardPlay)
                 .TargetingRandomOpponents(ctx.Owner.CombatState)
                 .Execute(choiceContext);
     }

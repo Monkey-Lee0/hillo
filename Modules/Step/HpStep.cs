@@ -51,7 +51,8 @@ public class HilloLoseHpSelfStep : HilloStep
                 amount,
                 ValueProp.Unblockable,
                 dealer: null,
-                cardSource: ctx.Card
+                cardSource: ctx.Card,
+                cardPlay: ctx.CardPlay
             );
     }
 

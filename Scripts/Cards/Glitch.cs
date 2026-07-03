@@ -41,7 +41,7 @@ public class Glitch : HilloCardModel
             int times = (int)ctx.Vars["Times"].BaseValue;
             for(int i=0; i<times; i++)
                 await DamageCmd.Attack(ctx.Vars.Damage.BaseValue)
-                    .FromCard(ctx.Card)
+                    .FromCard(ctx.Card, ctx.CardPlay)
                     .Targeting(ctx.Target)
                     .Execute(choiceContext);
         }

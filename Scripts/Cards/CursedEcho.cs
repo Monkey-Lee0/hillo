@@ -49,7 +49,7 @@ public class CursedEcho : HilloCardModel
             for(int i=0; i<_times; i++)
             {
                 AttackCommand atk = DamageCmd.Attack(ctx.Vars.OstyDamage.BaseValue)
-                    .FromOsty(player.Osty!, ctx.Card);
+                    .FromOsty(player.Osty!, ctx.Card, ctx.CardPlay);
                 atk = doomed
                     ? atk.TargetingAllOpponents(combatState)
                     : atk.Targeting(ctx.Target);

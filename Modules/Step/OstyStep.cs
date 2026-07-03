@@ -76,7 +76,7 @@ public class HilloOstyAttackAllStep : HilloStep
             return;
         for(int i=0; i<_times; i++)
             await DamageCmd.Attack(ctx.Vars.OstyDamage.BaseValue)
-                .FromOsty(player.Osty!, ctx.Card)
+                .FromOsty(player.Osty!, ctx.Card, ctx.CardPlay)
                 .TargetingAllOpponents(combatState)
                 .WithAttackerAnim("attack_poke", 0.3f)
                 .Execute(choiceContext);
@@ -107,7 +107,7 @@ public class HilloOstyAttackSingleStep : HilloOstyAttackAllStep
             return;
         for(int i=0; i<_times; i++)
             await DamageCmd.Attack(ctx.Vars.OstyDamage.BaseValue)
-                .FromOsty(player.Osty!, ctx.Card)
+                .FromOsty(player.Osty!, ctx.Card, ctx.CardPlay)
                 .Targeting(ctx.Target)
                 .WithAttackerAnim("attack_poke", 0.3f)
                 .Execute(choiceContext);
@@ -129,7 +129,7 @@ public class HilloOstyAttackRandomStep : HilloOstyAttackAllStep
             return;
         for(int i=0; i<_times; i++)
             await DamageCmd.Attack(ctx.Vars.OstyDamage.BaseValue)
-                .FromOsty(player.Osty!, ctx.Card)
+                .FromOsty(player.Osty!, ctx.Card, ctx.CardPlay)
                 .TargetingRandomOpponents(combatState)
                 .WithAttackerAnim("attack_poke", 0.3f)
                 .Execute(choiceContext);

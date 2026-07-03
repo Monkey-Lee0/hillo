@@ -71,7 +71,7 @@ public class Hail : HilloCardModel
                 return;
 
             await DamageCmd.Attack(damage)
-                .FromCard(ctx.Card)
+                .FromCard(ctx.Card, ctx.CardPlay)
                 .TargetingAllOpponents(combatState)
                 .Execute(choiceContext);
         }

@@ -31,7 +31,7 @@ public class StarExplode : HilloCardModel
                 return;
 
             await DamageCmd.Attack(xValue * xValue)
-                .FromCard(ctx.Card)
+                .FromCard(ctx.Card, ctx.CardPlay)
                 .TargetingAllOpponents(combatState)
                 .Execute(choiceContext);
         }

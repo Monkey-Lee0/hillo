@@ -14,7 +14,7 @@
     "HILLO-TERMINAL.title": "Terminal",
     "HILLO-TERMINAL.description": "Choose a card in your hand; its [gold]cost[/gold] is reduced by 1 this combat.\nChoose a card in your [gold]draw pile[/gold]; its [gold]cost[/gold] is increased by 1 this combat.",
     "HILLO-GLITCH.title": "Glitch",
-    "HILLO-GLITCH.description": "#Deal {Damage} damage {Times:diff()} times.\nAdd a -[gold]Repair[/gold]-+[green]Repair+[/green]+ to your hand.",
+    "HILLO-GLITCH.description": "#Deal {Damage} damage {Times:diff()} times.\nAdd a -[gold]Repair[/gold]-+[green]Repair/+[/green]+ to your hand.",
     "HILLO-REPAIR.title": "Repair",
     "HILLO-REPAIR.description": "#Gain {Block} [gold]Block[/gold] {Times:diff()} times.\nAdd a -[gold]Glitch[/gold]-+[green]Glitch+[/green]+ to your hand.",
     "HILLO-CACHE_CLEAR.title": "Cache Clear",
