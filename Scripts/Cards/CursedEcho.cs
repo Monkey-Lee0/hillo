@@ -20,7 +20,7 @@ namespace hillo.Scripts.Cards;
 public class CursedEcho : HilloCardModel
 {
     public CursedEcho() : base(2, CardType.Attack, CardRarity.Uncommon, TargetType.AnyEnemy,
-        [new ConditionalOstyAttackStep(9, times:2, upgradeDiff:2)],
+        [new ConditionalOstyAttackStep(11, times:2, upgradeDiff:2)],
         tags: [CardTag.OstyAttack]) {}
 
     // 奥斯提对目标造成伤害 times 次；若目标带灾厄(Doom)，改为对所有敌人。
