@@ -1,4 +1,8 @@
 {
+    "HILLO-VOID_ENVOY.title": "Void Envoy",
+    "HILLO-VOID_ENVOY.description": "#[gold]Summon[/gold] {Summon:diff()}.\nAdd a random -card-+[green]upgraded card[/green]+ to your hand; it gains [gold]Ethereal[/gold] and [gold]Exhaust[/gold], and costs 0 this turn.",
+    "HILLO-ETERNAL_GUARDIAN.title": "Eternal Guardian",
+    "HILLO-ETERNAL_GUARDIAN.description": "Whenever you play a card, [gold]Summon[/gold] {Guardian:diff()}.",
     "HILLO-TEMPORAL_DOMINION.title": "Temporal Dominion",
     "HILLO-TEMPORAL_DOMINION.description": "At the end of each turn, [gold]Osty[/gold] dies and ALL enemies gain [gold]Doom[/gold] equal to {Multiplier:diff()}x [gold]Osty[/gold]'s Max HP.",
     "HILLO-IMPENDING_DOOM.title": "Impending Doom",

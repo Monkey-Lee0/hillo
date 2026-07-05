@@ -10,25 +10,42 @@ using MegaCrit.Sts2.Core.ValueProps;
 namespace hillo.Modules.Step;
 
 // 召唤奥斯提（已存在则提升其最大生命）。数值用 SummonVar，可升级、带召唤提示。
+// scaleByAmount=true 时召唤量 × 宿主能力的层数（Amount），tooltip 同步显示缩放值。
 public class HilloSummonStep : HilloStep
 {
+    // SummonVar 变体：显示值 = 基础值 × 宿主能力的 Amount（宿主非能力时 ×1）。
+    private class ScalingSummonVar : SummonVar
+    {
+        public ScalingSummonVar(int amount) : base(amount) {}
+        public override string ToString()
+        {
+            int mult = (_owner as PowerModel)?.Amount ?? 1;
+            return ((int)(BaseValue * mult)).ToString();
+        }
+    }
+
     protected SummonVar _summonVar;
     protected int _amount;
     protected readonly int _diff;
+    protected bool _scaleByAmount;
 
-    public HilloSummonStep(int amount, int upgradeDiff=0)
+    public HilloSummonStep(int amount, int upgradeDiff=0, bool scaleByAmount=false)
     {
         _amount = amount;
         _diff = upgradeDiff;
-        _summonVar = new SummonVar(amount);
+        _scaleByAmount = scaleByAmount;
+        _summonVar = scaleByAmount ? new ScalingSummonVar(amount) : new SummonVar(amount);
     }
 
     public override async Task OnStep(PlayerChoiceContext choiceContext, HilloContext ctx)
     {
+        decimal amount = ctx.Vars.Summon.BaseValue * (_scaleByAmount ? ctx.Amount : 1m);
+        if(amount <= 0)
+            return;
         await OstyCmd.Summon(
             choiceContext,
             ctx.Player,
-            ctx.Vars.Summon.BaseValue,
+            amount,
             ctx.Card
         );
     }

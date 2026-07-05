@@ -31,6 +31,7 @@ public static class AddVenerateTranscendencePatch
         (typeof(Venerate), typeof(Revere)),
         (typeof(Survivor), typeof(Explorer)),
         (typeof(Zap), typeof(ChainLightning)),
+        (typeof(Bodyguard), typeof(VoidEnvoy)),
         // 可以在此添加更多映射，例如：
         // (typeof(SomeCard), typeof(SomeOtherCard)),
     ];
@@ -65,41 +66,32 @@ public static class AddVenerateTranscendencePatch
     }
 }
 
+// 原版 GetTranscendenceStarterCard 用 FirstOrDefault 取牌库里第一张可转世的牌，
+// 初始牌序固定 => 只要不删牌就永远是同一张。这里改成从所有可转世的牌里随机选一张。
+// 用 postfix 只改结果（不替换方法），避免此前 prefix 全替换导致的事件挂起。
 [HarmonyPatch(typeof(ArchaicTooth), "GetTranscendenceStarterCard")]
-public static class ArchaicTooth_GetTranscendenceStarterCard_Patch
+public static class RandomizeTranscendenceStarterCardPatch
 {
-    static bool Prefix(ArchaicTooth __instance, Player player, ref CardModel __result)
+    [HarmonyPostfix]
+    static void Randomize(Player player, ref CardModel __result)
     {
+        // __result 为 null 表示牌库里没有可转世的牌，保持不变。
+        if(__result == null)
+            return;
+
         var prop = typeof(ArchaicTooth).GetProperty("TranscendenceUpgrades",
             BindingFlags.Static | BindingFlags.NonPublic);
-        if (prop == null)
-        {
-            return true;
-        }
-        var transcendenceUpgrades = prop.GetValue(null) as Dictionary<ModelId, CardModel>;
-        if (transcendenceUpgrades == null || transcendenceUpgrades.Count == 0)
-        {
-            __result = null;
-            return false;
-        }
+        if(prop?.GetValue(null) is not Dictionary<ModelId, CardModel> upgrades || upgrades.Count == 0)
+            return;
 
-        var eligibleCards = player.Deck.Cards
-            .Where(c => transcendenceUpgrades.ContainsKey(c.Id))
+        var eligible = player.Deck.Cards
+            .Where(c => upgrades.ContainsKey(c.Id))
             .ToList();
+        if(eligible.Count <= 1)
+            return;   // 0/1 张时无需随机（原版结果已是唯一）
 
-        if (eligibleCards.Count == 0)
-        {
-            __result = null;
-        }
-        else
-        {
-            var originalRng = player.RunState.Rng.CombatCardGeneration;
-            Rng previewRng = new Rng(originalRng.Seed, originalRng.Counter);
-            int index = previewRng.NextInt() % eligibleCards.Count();
+        var rng = new Rng(player.PlayerRng.Rewards.Seed, player.PlayerRng.Rewards.Counter);
 
-            __result = eligibleCards[index];
-        }
-
-        return false;
+        __result = rng.NextItem(eligible);
     }
 }

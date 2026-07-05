@@ -1,4 +1,7 @@
 {
+    "HILLO-ETERNAL_GUARDIAN_POWER.title": "Eternal Guardian",
+    "HILLO-ETERNAL_GUARDIAN_POWER.description": "Whenever you play a card, [gold]Summon[/gold] {Summon}.",
+    "HILLO-ETERNAL_GUARDIAN_POWER.smartDescription": "Whenever you play a card, [gold]Summon[/gold] {Summon}.",
     "HILLO-TEMPORAL_DOMINION_POWER.title": "Temporal Dominion",
     "HILLO-TEMPORAL_DOMINION_POWER.description": "At the end of each turn, [gold]Osty[/gold] dies and ALL enemies gain [gold]Doom[/gold] equal to {Amount}x [gold]Osty[/gold]'s Max HP.",
     "HILLO-TEMPORAL_DOMINION_POWER.smartDescription": "At the end of each turn, [gold]Osty[/gold] dies and ALL enemies gain [gold]Doom[/gold] equal to {Amount}x [gold]Osty[/gold]'s Max HP.",
